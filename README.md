@@ -1,6 +1,7 @@
-#### parameters
+## ``param.h``
 - ``param.h``中``datapath``为输入数据集的地址，``logpath``为输出log的地址
 
+## ``GroundTruth.h``
 #### burst类
 - ``GroundTruth.h`` 中 ``burst``类用来记载burst的信息，包括开始时间、flowid、窗口大小、窗口数量、倍数、valid=1表示这是一个有效的burst
 
