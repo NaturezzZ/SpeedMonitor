@@ -1,15 +1,15 @@
-#include<vector>
-#include<iostream>
-#include<unordered_map>
-#include<string>
-#include<stdio.h>
-#include<stdlib.h>
-#include<memory.h>
-#include<deque>
+#include<bits/stdc++.h>
 #include"BOBHash32.h"
+
+#define datapath "/usr/share/dataset/DataSet/CAIDA/formatted00.dat"
+#define logpath "/home/zhengnq/SpeedMonitor/log"
+#define fi first
+#define se second
+#define rep(i,a,b) for(int (i)=(a);(i)<=(b);(i)++)
+#define rep2(i,a,b) for(int (i)=(a);(i)<(b);(i)++)
 #define END_FILE_NO 1
 #define START_FILE_NO 0
-#define KEY_LENGTH 4
+#define KEY_LENGTH 8
 #define ITEM_LENGTH 16
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -19,3 +19,6 @@ struct FIVE_TUPLE{
 };
 typedef vector<FIVE_TUPLE> TRACE;
 typedef unordered_map<string, int> FREQ_RECORD;
+
+ifstream fin(datapath, ios::binary);
+ofstream mylog(logpath);
