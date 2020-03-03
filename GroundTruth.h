@@ -57,8 +57,9 @@ public:
             }
             flit++;
         }
+        bool flag = 0;
         set<burst> result;
-        while(*flit < endtime){
+        while(flit != flend && *flit < endtime){
             uint64_t timestamp[4];
             timestamp[0] = *flit;
             timestamp[1] = timestamp[0]+(uint64_t)windowsize;
@@ -77,9 +78,15 @@ public:
             rep2(i, 0, 3){ ave[i] = (double)cnt[i]; }
             ave[1] /= (double) windownum;
             if(ave[1]>(double)scalesize * ave[0] && ave[1]>(double)scalesize * ave[2]){
-                result.insert(burst(starttime, flowid, windowsize, windownum, scalesize ) );
+                result.insert(burst(starttime, flowid, windowsize, windownum, scalesize));
+                flag = 1;
                 flit = it;
             }
         }
+        if(flag == 0){
+            notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
+            return set<burst>{burst(0)};
+        }
+        return result;
     }
 };
