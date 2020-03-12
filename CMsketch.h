@@ -1,5 +1,6 @@
 #define counter_t uint32_t
 #define CNT_MAX 0xffffffff
+#include "BOBHash32.h"
 class CM{
     private:
         int d;

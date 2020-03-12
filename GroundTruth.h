@@ -38,7 +38,7 @@ public:
         mylog << "window size = " << windowsize << ", window number = " << windownum << ", scale = " << scale << endl;
         mylog << endl;
     }
-    set<burst> query(const uint64_t & starttime, const uint64_t & endtime, const uint64_t & flowid,
+    vector<burst> query(const uint64_t & starttime, const uint64_t & endtime, const uint64_t & flowid,
         const unsigned int & windowsize, const unsigned int & windownum, const unsigned int & scalesize){
         /*
         [starttime, endtime)
@@ -46,19 +46,19 @@ public:
         gtmap::iterator gtit = strmap.find(flowid);
         if(gtit == strmap.end()){
             notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
-            return set<burst>{burst(0)};
+            return vector<burst>{burst(0)};
         }
         flowset::iterator flit = gtit->se.begin(); //flit point to beginning of the multiset
         flowset::iterator flend = gtit->se.end();
         while(*flit < starttime){
             if(flit == flend){
                 notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
-                return set<burst>{burst(0)};
+                return vector<burst>{burst(0)};
             }
             flit++;
         }
         bool flag = 0;
-        set<burst> result;
+        vector<burst> result;
         while(flit != flend && *flit < endtime){
             uint64_t timestamp[4];
             timestamp[0] = *flit;
@@ -78,14 +78,14 @@ public:
             rep2(i, 0, 3){ ave[i] = (double)cnt[i]; }
             ave[1] /= (double) windownum;
             if(ave[1]>(double)scalesize * ave[0] && ave[1]>(double)scalesize * ave[2]){
-                result.insert(burst(starttime, flowid, windowsize, windownum, scalesize));
+                result.push_back( burst(starttime, flowid, windowsize, windownum, scalesize) );
                 flag = 1;
                 flit = it;
             }
         }
         if(flag == 0){
             notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
-            return set<burst>{burst(0)};
+            return vector<burst>{burst(0)};
         }
         return result;
     }
