@@ -1,4 +1,3 @@
-#include "GroundTruth.h"
 #include "BOBHash32.h"
 #define START_SPEED 128
 #define LEV_NUM 1024
