@@ -6,14 +6,11 @@ class burst{
 public:
     uint64_t starttime;
     uint64_t flowid;
-    unsigned int winsize;
-    unsigned int winnum;
-    unsigned int scale;
+    uint64_t endtime;
     bool valid;
-    burst(const uint64_t & start, const uint64_t & flow, const unsigned int & windowsize, 
-        const unsigned int & windownum, const unsigned int & scalesize): starttime(start), flowid(flow),
-        winsize(windowsize), scale(scalesize), winnum(windownum), valid(1){ }
-    burst(const int & sta):starttime(0), flowid(0), winsize(0), scale(0), winnum(0), valid(0){ }
+    burst(const uint64_t & start, const uint64_t & flow, const uint64_t & end): starttime(start), flowid(flow),
+        endtime(end), valid(1){ }
+    burst(const int & sta):starttime(0), flowid(0), endtime(0), valid(0){ }
 };
 class gt{
 //private:
@@ -40,20 +37,21 @@ public:
         mylog << endl;
     }
     vector<burst> query(const uint64_t & starttime, const uint64_t & endtime, const uint64_t & flowid,
-        const unsigned int & windowsize, const unsigned int & windownum, const unsigned int & scalesize){
+        const uint64_t & thres, float scale, uint32_t cut){
         /*
         [starttime, endtime)
         */
         gtmap::iterator gtit = strmap.find(flowid);
+        uint64_t hop = thres/10;
         if(gtit == strmap.end()){
-            notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
+            //notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
             return vector<burst>{burst(0)};
         }
         flowset::iterator flit = gtit->se.begin(); //flit point to beginning of the multiset
         flowset::iterator flend = gtit->se.end();
         while(*flit < starttime){
             if(flit == flend){
-                notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
+                //notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
                 return vector<burst>{burst(0)};
             }
             flit++;
@@ -61,31 +59,49 @@ public:
         bool flag = 0;
         vector<burst> result;
         while(flit != flend && *flit < endtime){
-            uint64_t timestamp[4];
-            timestamp[0] = *flit;
-            timestamp[1] = timestamp[0]+(uint64_t)windowsize;
-            timestamp[2] = timestamp[1]+(uint64_t)windownum *(uint64_t)windowsize;
-            timestamp[3] = timestamp[2] + windowsize;
-            flowset::iterator it = flit;
-            uint64_t cnt[3];
-            rep2(i, 0, 3){
-                cnt[i] = 0;
-                while(it != flend && *it < timestamp[i+1]){
-                    cnt[i] += 1;
-                    it ++;
+            flowset::iterator tmpit = flit;
+            uint64_t StartTime = *flit;
+            uint32_t cnt1 = 0;
+            uint32_t cnt2 = 0;
+            float ratio1, ratio2;
+            while(*tmpit < *flit+ hop){
+                cnt1 += 1;
+                tmpit++;
+            }
+            while(*tmpit < *flit + 2*hop){
+                cnt2 += 1;
+                tmpit++;
+            }
+            ratio1 = (float)cnt2/(float)(cnt1+1);
+            if(cnt2 < cut) ratio1 = 0;
+            cnt1=0, cnt2=0;
+
+            if(ratio1 < scale) {
+                flit = gtit->se.find(*flit+hop);
+                continue;
+            }
+            bool flag1 = 0;
+            while(flit != flend && *flit < thres+StartTime && flag1 == 0){
+                flit = tmpit;
+                cnt1 = 0, cnt2 = 0;
+                while(*tmpit < *flit+ hop){
+                    cnt1 += 1;
+                    tmpit++;
+                }
+                while(*tmpit < *flit + 2*hop){
+                    cnt2 += 1;
+                    tmpit++;
+                }
+                ratio2 = (float)cnt1/(float)(cnt2+1);
+                if(cnt1 < cut)ratio2 = 0;
+                if(ratio2 > scale){
+                    result.push_back(burst(StartTime, flowid, *tmpit));
+                    flag1 = 1, flag = 1;
                 }
             }
-            double ave[3];
-            rep2(i, 0, 3){ ave[i] = (double)cnt[i]; }
-            ave[1] /= (double) windownum;
-            if(ave[1]>(double)scalesize * ave[0] && ave[1]>(double)scalesize * ave[2]){
-                result.push_back( burst(starttime, flowid, windowsize, windownum, scalesize) );
-                flag = 1;
-                flit = it;
-            }
+            flit = tmpit;
         }
         if(flag == 0){
-            notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
             return vector<burst>{burst(0)};
         }
         return result;

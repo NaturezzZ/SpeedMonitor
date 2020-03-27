@@ -3,12 +3,12 @@
 #define LEV_NUM 1024
 #define BUCK_NUM (1<<15)
 #define HASH_NUM 1
-#define BURST_THRE 0x1000000000UL
+#define BURST_THRE 0x10000000000UL
 #define DECAY 4
 #define stair 8
-#define DECAY_CYCLE 0x100000000000000UL
+#define DECAY_CYCLE 0x10000000000UL
 #define LEV 1.1
-#define BURST_LEV 1
+#define BURST_LEV 10
 class buck{
 public:
     uint32_t speed_monitor;
