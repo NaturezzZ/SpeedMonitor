@@ -16,7 +16,8 @@ public:
     burst(const int & sta):starttime(0), flowid(0), winsize(0), scale(0), winnum(0), valid(0){ }
 };
 class gt{
-private:
+//private:
+public:
     gtmap strmap;
 public:
     gt(){

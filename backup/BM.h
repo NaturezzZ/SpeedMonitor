@@ -1,12 +1,11 @@
 #include "BOBHash32.h"
 #define START_SPEED 0
 #define LEV_NUM 1024
-#define BUCK_NUM (1<<15)
+#define BUCK_NUM 1<<15
 #define HASH_NUM 1
-#define BURST_THRE 0x1000000000UL
-#define DECAY 4
-#define stair 8
-#define DECAY_CYCLE 0x100000000000000UL
+#define BURST_THRE 0x10000000000UL
+#define DECAY 64
+#define DECAY_CYCLE 0x10000000000UL
 #define LEV 1.1
 #define BURST_LEV 1
 class buck{
@@ -43,14 +42,14 @@ public:
         bmhash = new BOBHash32*[HASH_NUM];
         rep2(i, 0, HASH_NUM){
             bmhash[i] = new BOBHash32(i);
-            //cout << i << endl;
+            cout << i << endl;
             srand(rand());
         }
 
     }
     
     uint32_t getk(uint32_t x){ // get speed level (in exponential levels)
-        return x/stair;
+        return x/128;
     }
 
     double powlev(int x){
@@ -67,21 +66,18 @@ public:
 
     void insert(const uint64_t flow, const uint64_t & currTime){
         //mylog << flow << endl;
-        //cout << 1 << endl;
         rep2(i, 0, HASH_NUM){
-            //cout << 1 << endl;
-            unsigned int pos = bmhash[i]->run((char*)&flow, 8) % BUCK_NUM;
-            //cout << pos<< endl;
+            string s = to_string(flow);
+            const char* t = s.c_str();
+            unsigned int pos = bmhash[i]->run(t, strlen(t)) % BUCK_NUM;
+            //cout << pos << endl;
             uint32_t k = getk(bucket[pos]->speed_monitor);
             if(check(k)) bucket[pos]->speed_monitor += 1;
             uint64_t prevTime = bucket[pos]->time_record[k];
             uint32_t tmp = (currTime-prevTime)/DECAY_CYCLE;
-            bucket[pos]->time_record[k] = currTime;
-            if(prevTime == 0)continue;
-            //cout << '*'<< tmp << ',' << currTime<<',' << prevTime<< endl;
-            //if (tmp >= 10000) continue;
+            //cout << '*'<< tmp << endl;
+            if (tmp >= 1000) continue;
             rep2(j, 0, tmp){
-                if(bucket[pos]->speed_monitor == 0)break;
                 decay(pos, currTime, flow);
             }
         }
@@ -94,11 +90,10 @@ public:
     }
 
     void detectBurst(uint64_t lastTime, uint64_t currTime, uint32_t lev, uint32_t pos, uint64_t flow){
-        
         if(currTime - lastTime > BURST_THRE) return;
         int cnt = 0;
         rep2(i, (int)lev, (int)LEV_NUM){
-            uint64_t tmp = bucket[pos]->time_record[i];
+            uint32_t tmp = bucket[pos]->time_record[i];
             if( tmp >= lastTime && tmp <= currTime) cnt += 1;
             else break;
         }
@@ -109,12 +104,12 @@ public:
     void decay(uint32_t pos, uint64_t currTime, uint64_t flow){
         uint32_t & sp_mo = bucket[pos]->speed_monitor;
         uint32_t k1 = getk(sp_mo);
-        if (sp_mo < DECAY)sp_mo = 0;
-        else sp_mo -= DECAY;
+        if (sp_mo < 64)sp_mo = 0;
+        else sp_mo -= 64;
         uint32_t k2 = getk(sp_mo);
-        uint64_t  lt = bucket[pos]->time_record[k2];
+        uint64_t & lt = bucket[pos]->time_record[k2];
         if(k2 < k1) detectBurst(lt, currTime, k2, pos, flow);
-        bucket[pos]->time_record[k2] = currTime;
+        lt = currTime;
     }
 
     ~bm(){
