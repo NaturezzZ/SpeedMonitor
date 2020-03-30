@@ -1,14 +1,15 @@
 #include "BOBHash32.h"
+#include "CorrectBurstDetector.h"
 #define START_SPEED 0
 #define LEV_NUM 1024
 #define BUCK_NUM (1<<15)
 #define HASH_NUM 1
-#define BURST_THRE 0x10000000000UL
+#define BURST_THRE 100*unittime
 #define DECAY 4
 #define stair 8
-#define DECAY_CYCLE 0x10000000000UL
+#define DECAY_CYCLE unittime
 #define LEV 1.1
-#define BURST_LEV 10
+#define BURST_LEV 7
 class buck{
 public:
     uint32_t speed_monitor;
@@ -27,13 +28,13 @@ private:
     buck ** bucket;
     BOBHash32 ** bmhash;
 public:
-    
+    uint32_t m;
     buck * get_buck (int i) {
       return bucket[i];
     }
     
-    bm(){
-
+    bm(uint32_t _m){
+        m = _m;
         bucket = new buck*[BUCK_NUM];
         rep2(i, 0, BUCK_NUM){
             bucket[i] = new buck();
@@ -80,9 +81,10 @@ public:
             if(prevTime == 0)continue;
             //cout << '*'<< tmp << ',' << currTime<<',' << prevTime<< endl;
             //if (tmp >= 10000) continue;
+            bool f = 1;
             rep2(j, 0, tmp){
                 if(bucket[pos]->speed_monitor == 0)break;
-                decay(pos, currTime, flow);
+                decay(pos, currTime, flow, f);
             }
         }
 
@@ -93,27 +95,30 @@ public:
         mylog << starttime << ',' << endtime << endl;
     }
 
-    void detectBurst(uint64_t lastTime, uint64_t currTime, uint32_t lev, uint32_t pos, uint64_t flow){
+    bool detectBurst(uint64_t lastTime, uint64_t currTime, uint32_t lev, uint32_t pos, uint64_t flow){
         
-        if(currTime - lastTime > BURST_THRE) return;
+        if(currTime - lastTime > BURST_THRE) return 0;
         int cnt = 0;
         rep2(i, (int)lev, (int)LEV_NUM){
             uint64_t tmp = bucket[pos]->time_record[i];
             if( tmp >= lastTime && tmp <= currTime) cnt += 1;
             else break;
         }
-        if (cnt > BURST_LEV) claimBurst(flow, lastTime, currTime);
-        return;
+        if (lev >= m && cnt > BURST_LEV) {claimBurst(flow, lastTime, currTime); return 1;}
+        return 0;
     }
 
-    void decay(uint32_t pos, uint64_t currTime, uint64_t flow){
+    void decay(uint32_t pos, uint64_t currTime, uint64_t flow, bool &deflag){
         uint32_t & sp_mo = bucket[pos]->speed_monitor;
         uint32_t k1 = getk(sp_mo);
         if (sp_mo < DECAY)sp_mo = 0;
         else sp_mo -= DECAY;
         uint32_t k2 = getk(sp_mo);
         uint64_t  lt = bucket[pos]->time_record[k2];
-        if(k2 < k1) detectBurst(lt, currTime, k2, pos, flow);
+        if(k2 < k1 && deflag) {
+            bool tmp = detectBurst(lt, currTime, k2, pos, flow);
+            if(tmp) deflag = 0;
+        }
         bucket[pos]->time_record[k2] = currTime;
     }
 

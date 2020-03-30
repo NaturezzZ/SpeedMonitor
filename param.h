@@ -14,6 +14,7 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define ABS(a) ((a)>0?(a):(-(a)))
+#define unittime 5000000000000UL
 struct FIVE_TUPLE{
 	char key[ITEM_LENGTH];
 };

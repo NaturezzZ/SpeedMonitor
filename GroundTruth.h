@@ -41,10 +41,12 @@ public:
         /*
         [starttime, endtime)
         */
+        cout << "flowid" << flowid << endl;
         gtmap::iterator gtit = strmap.find(flowid);
         uint64_t hop = thres/10;
         if(gtit == strmap.end()){
             //notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
+            //cout << 1 << endl;
             return vector<burst>{burst(0)};
         }
         flowset::iterator flit = gtit->se.begin(); //flit point to beginning of the multiset
@@ -52,12 +54,16 @@ public:
         while(*flit < starttime){
             if(flit == flend){
                 //notfound(starttime, endtime, flowid, windowsize, windownum, scalesize);
+                //cout << 2 << endl;
                 return vector<burst>{burst(0)};
             }
             flit++;
         }
         bool flag = 0;
         vector<burst> result;
+        cout << "flit,"<< *flit << endl;
+        cout << "endtime," << endtime << endl;
+        cout << "hop," << hop << endl;
         while(flit != flend && *flit < endtime){
             flowset::iterator tmpit = flit;
             uint64_t StartTime = *flit;
@@ -72,18 +78,19 @@ public:
                 cnt2 += 1;
                 tmpit++;
             }
-            ratio1 = (float)cnt2/(float)(cnt1+1);
+            ratio1 = ((float)cnt2+0.1)/((float)cnt1+0.1);
             if(cnt2 < cut) ratio1 = 0;
             cnt1=0, cnt2=0;
 
             if(ratio1 < scale) {
-                flit = gtit->se.find(*flit+hop);
+                flit = gtit->se.lower_bound(*flit+hop);
                 continue;
             }
             bool flag1 = 0;
-            while(flit != flend && *flit < thres+StartTime && flag1 == 0){
+            while(tmpit != flend && *tmpit < thres+StartTime && flag1 == 0){
                 flit = tmpit;
                 cnt1 = 0, cnt2 = 0;
+                flowset::iterator tptp = tmpit;
                 while(*tmpit < *flit+ hop){
                     cnt1 += 1;
                     tmpit++;
@@ -92,10 +99,12 @@ public:
                     cnt2 += 1;
                     tmpit++;
                 }
-                ratio2 = (float)cnt1/(float)(cnt2+1);
+                
+                ratio2 = ((float)cnt1+0.1)/((float)cnt2+0.1);
                 if(cnt1 < cut)ratio2 = 0;
                 if(ratio2 > scale){
-                    result.push_back(burst(StartTime, flowid, *tmpit));
+                    
+                    result.push_back(burst(StartTime, flowid, *tptp));
                     flag1 = 1, flag = 1;
                 }
             }

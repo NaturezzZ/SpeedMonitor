@@ -1,10 +1,8 @@
 #include<bits/stdc++.h>
 #include<map>
-#ifndef H
-#define H
 #include "Burst.h"
 #include "param.h"
-#endif
+#define window_size (10*unittime)
 class CorrectBurstDetector
 {
 	public:
@@ -40,7 +38,7 @@ class CorrectBurstDetector
 	{
 		for(int i = 0; i < w; i++)
 		{
-			if(counter[flag][i] <= counter[flag ^ 1][i] / 2 && timestamp[i] != -1)
+			if(counter[flag][i] <= counter[flag ^ 1][i] / 2 && timestamp[i] != -1 )//&& time - timestamp[i] <= 100)
 			{
 				//output burst
 				Record.push_back(Burst(timestamp[i], time, id[i]));
