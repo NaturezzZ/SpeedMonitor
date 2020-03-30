@@ -13,6 +13,7 @@ class CorrectBurstDetector
 	uint64_t* id;
 	uint64_t last_timestamp;
 	bool flag;
+	
 	vector<Burst> Record;
 	CorrectBurstDetector(int _m)
 	{
