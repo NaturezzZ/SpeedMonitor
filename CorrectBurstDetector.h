@@ -6,6 +6,7 @@
 class CorrectBurstDetector
 {
 	public:
+	uint32_t tmp[10000000];
 	map<uint64_t, int> F;
 	uint32_t w, m;
 	uint32_t* counter[2];
@@ -13,10 +14,11 @@ class CorrectBurstDetector
 	uint64_t* id;
 	uint64_t last_timestamp;
 	bool flag;
-	
+
 	vector<Burst> Record;
 	CorrectBurstDetector(int _m)
 	{
+		memset(tmp, 0, sizeof(tmp));
 		F.clear();
 		w = 0;
 		m = _m;
@@ -39,10 +41,14 @@ class CorrectBurstDetector
 	{
 		for(int i = 0; i < w; i++)
 		{
-			if(counter[flag][i] <= counter[flag ^ 1][i] / 2 && timestamp[i] != -1 )//&& time - timestamp[i] <= 100)
+			//if(id[i] == 113254552UL) cout << time << ' ' << counter[flag][i] << endl;
+			if(counter[flag][i] <= counter[flag ^ 1][i] / 2 && timestamp[i] != -1 && time - timestamp[i] <= 10)
 			{
 				//output burst
 				Record.push_back(Burst(timestamp[i], time, id[i]));
+				//gtlog << "id: " << id[i] << endl;
+				//gtlog << timestamp[i]*window_size << ", " << time*window_size << endl;
+				//if(id[i] == 113254552UL) cout << "Burst!\n" << endl;
 				timestamp[i] = -1;
 			}
 			if(counter[flag][i] < m)
@@ -69,5 +75,8 @@ class CorrectBurstDetector
 			F[flow_id] = w++;
 		}
 		counter[flag][F[flow_id]]++;
+		//if(flow_id == 424178577768553675UL){
+		//	tmp[timestamp] += 1;
+		//}
 	}
 };
