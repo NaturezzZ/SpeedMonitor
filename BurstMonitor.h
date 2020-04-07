@@ -122,9 +122,10 @@ public:
                 if(bucket[pos]->speed_monitor == 0)break;
                 decay(pos, currTime, flow, f);
             }
-            if(flow == 424178577768553675UL){
+            if(flow == 11117438114484264402UL){
                 //if(tmp != 0)cout << tmp << endl;
-                //mylog << currTime << ','<< bucket[pos]->speed_monitor << endl;
+                if(currTime <= 1000*(10*unittime))
+                gtlog << currTime << ','<< bucket[pos]->speed_monitor << endl;
             } 
         }
         

@@ -75,8 +75,8 @@ class CorrectBurstDetector
 			F[flow_id] = w++;
 		}
 		counter[flag][F[flow_id]]++;
-		//if(flow_id == 424178577768553675UL){
-		//	tmp[timestamp] += 1;
-		//}
+		if(flow_id == 11117438114484264402UL){
+			tmp[timestamp] += 1;
+		}
 	}
 };

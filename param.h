@@ -2,7 +2,7 @@
 #include"BOBHash32.h"
 
 #define datapath "/usr/share/dataset/DataSet/CAIDA/formatted00.dat"
-#define logpath "/home/zhengnq/SpeedMonitor/log"
+//#define logpath "/home/zhengnq/SpeedMonitor/log"
 #define fi first
 #define se second
 #define rep(i,a,b) for(int (i)=(a);(i)<=(b);(i)++)
@@ -21,5 +21,4 @@ struct FIVE_TUPLE{
 typedef vector<FIVE_TUPLE> TRACE;
 typedef unordered_map<string, int> FREQ_RECORD;
 
-ofstream mylog(logpath, std::ios::out|std::ios::trunc);
 ofstream gtlog("/home/zhengnq/SpeedMonitor/gtlog", std::ios::out|std::ios::trunc);

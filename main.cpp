@@ -46,19 +46,27 @@ pair<float,float> test(){
         }
     }
     cout << "flowsize " << GT->w << endl;
-    cout << "bmsize " << BurstMonitor->Record.size() << endl;
-    cout << "gtsize " << GT->Record.size() << endl;
-    cout << "precision " << (float)cnt/(float)(BurstMonitor->Record.size()) << endl;
-    cout << "recall " << (float)cnt1/(float)(GT->Record.size()) << endl;
+    //cout << "bmsize " << BurstMonitor->Record.size() << endl;
+    //cout << "gtsize " << GT->Record.size() << endl;
+    //cout << "precision " << (float)cnt/(float)(BurstMonitor->Record.size()) << endl;
+    //cout << "recall " << (float)cnt1/(float)(GT->Record.size()) << endl;
     
     fin.close();
+    //delete BurstMonitor;
+    //delete GT;
     return make_pair((float)cnt/(float)(BurstMonitor->Record.size()), (float)cnt1/(float)(GT->Record.size()));
 }
-int main(){
-
-    for(uint32_t i = 0; i < 100; i++){
-        BUCK_NUM = 1000*(i+1);
+int main(int argc, char* argv[]){
+    char logpath[100] = {0};
+    strcat(logpath, "/home/zhengnq/SpeedMonitor/");
+    strcat(logpath, argv[1]);
+    strcat(logpath, argv[2]);
+    ofstream mylog(logpath, std::ios::out|std::ios::trunc);
+    for(uint32_t i = 0; i < 10; i++){
+        BUCK_NUM = 300*(10*atoi(argv[2])+i+1);
         pair<float,float> r = test();
+        //cout << BUCK_NUM << ',' << r.fi << ',' << r.se << endl;
+
         mylog << BUCK_NUM << ',' << r.fi << ',' << r.se << endl;
     }
     return 0;
