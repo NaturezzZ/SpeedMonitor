@@ -6,12 +6,12 @@ using namespace std;
 int main(int argc, char* argv[]){
     int upper = atoi(argv[2]);
     char resultpath[100] = {0};
-    strcat(resultpath, "/home/zhengnq/SpeedMonitor/");
+    strcat(resultpath, "/home/zhengnq/SpeedMonitor/further");
     strcat(resultpath, argv[1]);
     ofstream myout(resultpath, std::ios::out|std::ios::trunc);
 
     char originpath[100] = {0};
-    strcat(originpath, "/home/zhengnq/SpeedMonitor/");
+    strcat(originpath, "/home/zhengnq/SpeedMonitor/further");
     strcat(originpath, argv[1]);
 
     

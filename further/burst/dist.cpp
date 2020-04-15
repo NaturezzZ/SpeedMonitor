@@ -58,7 +58,7 @@ pair<float,float> test(){
 }
 int main(int argc, char* argv[]){
     char logpath[100] = {0};
-    strcat(logpath, "/home/zhengnq/SpeedMonitor/");
+    strcat(logpath, "/home/zhengnq/SpeedMonitor/further/");
     strcat(logpath, argv[1]);
     //strcat(logpath, argv[2]);
     ofstream mylog(logpath, std::ios::out|std::ios::trunc);
@@ -106,35 +106,7 @@ int main(int argc, char* argv[]){
     rep2(i,0,1000){
         gtlog << window_size*i << ',' << GT->tmp[i] << endl;
     }
-    /*cout << GT->Record.size() << endl;
     
-    int cnt = 0;
-    
-    rep2(i, 0, BurstMonitor->Record.size()){
-        uint64_t id = BurstMonitor->Record[i].flow_id;
-        rep2(j, 0, GT->Record.size()){
-            if(GT->Record[j].flow_id == id){
-                cnt += 1;
-                break;
-            }
-        }
-    }
-    int cnt1 = 0;
-    rep2(i, 0, GT->Record.size()){
-        uint64_t id = GT->Record[i].flow_id;
-        rep2(j, 0, BurstMonitor->Record.size()){
-            if(BurstMonitor->Record[j].flow_id == id){
-                cnt1 += 1;
-                break;
-            }
-        }
-    }
-    cout << "flowsize " << GT->w << endl;
-    //cout << "bmsize " << BurstMonitor->Record.size() << endl;
-    //cout << "gtsize " << GT->Record.size() << endl;
-    //cout << "precision " << (float)cnt/(float)(BurstMonitor->Record.size()) << endl;
-    //cout << "recall " << (float)cnt1/(float)(GT->Record.size()) << endl;
-    */
     fin.close();
     return 0;
 }
