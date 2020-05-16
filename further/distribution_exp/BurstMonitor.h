@@ -2,14 +2,14 @@
 #include "CorrectBurstDetector.h"
 #define START_SPEED 8
 #define LEV_NUM 1024
-uint32_t BUCK_NUM = (1000);
+uint32_t BUCK_NUM = (30000);
 #define HASH_NUM 1
-#define BURST_THRE 100*unittime
+#define BURST_THRE (100*unittime)
 #define DECAY 1
 #define stair 8
-#define DECAY_CYCLE (unittime)
-#define LEV 1.2
-#define BURST_LEV 3
+#define DECAY_CYCLE (unittime/4)
+#define LEV 1.1
+#define BURST_LEV 5
 #define ULMAX (0xffffffffffffffffUL)
 class buck{
 public:
@@ -34,7 +34,7 @@ private:
 public:
     uint32_t ts;
     uint32_t m;
-    uint32_t number;
+    static uint32_t seed;
     vector<Burst> Record;
     buck * get_buck (int i) {
       return bucket[i];
@@ -43,7 +43,7 @@ public:
     bm(uint32_t _m){
         m = _m;
         ts = 0;
-        number = 0;
+        seed = 0;
         bucket = new buck*[BUCK_NUM];
         decaytime = new uint64_t[BUCK_NUM];
         rep2(i, 0, BUCK_NUM){
@@ -56,7 +56,9 @@ public:
         rep2(i, 0, HASH_NUM){
             bmhash[i] = new BOBHash32(i);
             //cout << i << endl;
-            //srand(rand());
+            //srand(seed);
+            //seed += 1;
+            //if(seed == 1000000) seed = 0;
         }
 
     }
@@ -72,9 +74,8 @@ public:
 
     bool check(uint32_t k){
         uint32_t r = rand() % RAND_MAX;
-        if ((double)r < (double)RAND_MAX / powlev(k)) return 1;
+        if ((double)r < ((double)RAND_MAX / powlev(k))) return 1;
         else return 0;
-        //srand(rand());
     }
 
     void insert(const uint64_t flow, const uint64_t & currTime){
@@ -98,7 +99,7 @@ public:
                     uint64_t tmpflow = bucket[j]->flow_record;
                     rep2(k, 0, tmp){
                         //cout << tmp << endl;
-                        decaytime[j] += DECAY_CYCLE;
+                        decaytime[j] = currTime;
                         if(bucket[j]->speed_monitor == 0)break;
                         decay(j, currTime, tmpflow, f);
                     }
@@ -119,17 +120,13 @@ public:
             //if (tmp >= 10000) continue;
             bool f = 1;
             rep2(j, 0, tmp){
-                //cout << tmp << endl;
-                decaytime[pos] += DECAY_CYCLE;
-                if(bucket[pos]->speed_monitor == 0)continue;
+                decaytime[pos] = currTime;
+                if(bucket[pos]->speed_monitor == 0)break;
                 decay(pos, currTime, flow, f);
             }
-            if(flow == 208005795227025817UL){
-                //if(number > 10000) return;
-                //if(currTime > number*(1*unittime)){
-                //    gtlog << currTime << ','<< bucket[pos]->speed_monitor << ',' << decaytime[pos] << ',' << tmp << endl;
-                //    number += 1;
-                //}
+            if(flow == 11117438114484264402UL){
+                if(currTime <= 1000*(10*unittime))
+                gtlog << currTime << ','<< bucket[pos]->speed_monitor << endl;
             } 
         }
         
@@ -140,9 +137,8 @@ public:
 
         //}
         Record.push_back(Burst(starttime,endtime,flowid));
-        //gtlog << "flow id = " << flowid << ':' << endl;
-        //gtlog << starttime << ',' << endtime << endl;
-        
+        //mylog << "flow id = " << flowid << ':' << endl;
+        //mylog << starttime << ',' << endtime << endl;
     }
 
     bool detectBurst(uint64_t lastTime, uint64_t currTime, uint32_t lev, uint32_t pos, uint64_t flow){
@@ -160,7 +156,6 @@ public:
 
     void decay(uint32_t pos, uint64_t currTime, uint64_t flow, bool &deflag){
         uint32_t & sp_mo = bucket[pos]->speed_monitor;
-        if(sp_mo == 0)return;
         uint32_t k1 = getk(sp_mo);
         if (sp_mo < DECAY)sp_mo = 0;
         else sp_mo -= DECAY;
@@ -171,7 +166,7 @@ public:
             if(tmp) deflag = 0;
         }
         bucket[pos]->time_record[k2] = currTime;
-        //decaytime[pos] = currTime;
+        decaytime[pos] = currTime;
     }
 
     ~bm(){
@@ -186,3 +181,4 @@ public:
     }
 
 };
+uint32_t bm::seed = 0;

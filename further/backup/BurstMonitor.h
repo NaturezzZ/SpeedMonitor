@@ -7,18 +7,20 @@ uint32_t BUCK_NUM = (1000);
 #define BURST_THRE (100*unittime)
 #define DECAY 1
 #define stair 8
-#define DECAY_CYCLE (unittime/1)
+#define DECAY_CYCLE (unittime/4)
 #define LEV 1.1
 #define BURST_LEV 5
 #define ULMAX (0xffffffffffffffffUL)
-int k = 10;
+const int k = 40;
 class buck{
 public:
     uint32_t speed_monitor;
+    uint32_t last_sm;
     uint64_t *time_record;
     uint64_t flow_record;
     buck(){
-        speed_monitor = START_SPEED;
+        speed_monitor = 0;
+        last_sm = 0;
         time_record = new uint64_t[LEV_NUM];
         memset(time_record, 0, LEV_NUM * sizeof(uint64_t));
         flow_record = ULMAX;
@@ -33,7 +35,7 @@ private:
     BOBHash32 ** bmhash;
     uint64_t * decaytime;
 public:
-    uint32_t ts;
+    uint64_t ts;
     uint32_t m;
     static uint32_t seed;
     vector<Burst> Record;
@@ -58,10 +60,6 @@ public:
         bmhash = new BOBHash32*[HASH_NUM];
         rep2(i, 0, HASH_NUM){
             bmhash[i] = new BOBHash32(i);
-            //cout << i << endl;
-            //srand(seed);
-            //seed += 1;
-            //if(seed == 1000000) seed = 0;
         }
 
     }
@@ -88,49 +86,18 @@ public:
     }
 
     void insert(const uint64_t flow, const uint64_t & currTime){
-        //mylog << flow << endl;
-        //cout << 1 << endl;
+
         rep2(i, 0, HASH_NUM){
 
-            if(ts < currTime/(BURST_THRE/2)){
-                ts = currTime/(BURST_THRE/2);
-                rep2(j,0,BUCK_NUM){
-                    uint32_t k = getk(bucket[j]->speed_monitor);
-                    //if(check(k)) bucket[j]->speed_monitor += 1;
-                    uint64_t prevTime = bucket[j]->time_record[k];
-                    uint32_t tmp = (currTime-decaytime[j])/DECAY_CYCLE;
-                    bucket[j]->time_record[k] = currTime;
-                    if(prevTime == 0)continue;
-                    //cout << '*'<< tmp << ',' << currTime<<',' << prevTime<< endl;
-                    //if (tmp >= 10000) continue;
-                    bool f = 1;
-                    uint64_t tmpflow = bucket[j]->flow_record;
-                    rep2(k, 0, tmp){
-                        //cout << tmp << endl;
-                        decaytime[j] = decaytime[j]+DECAY_CYCLE;
-                        if(bucket[j]->speed_monitor == 0)break;
-                        decay(j, currTime, tmpflow, f);
-                    }
-                }
-            }
-            //cout << 1 << endl;
             unsigned int pos = bmhash[i]->run((char*)&flow, 8) % BUCK_NUM;
-            //cout << pos<< endl;
             bucket[pos]->flow_record = flow;
 
-            uint32_t k = getk(bucket[pos]->speed_monitor);
             bucket[pos]->speed_monitor += 1;
-            //if(check(k)) bucket[pos]->speed_monitor += 1;
-            uint64_t prevTime = bucket[pos]->time_record[k];
             uint32_t tmp = (currTime-decaytime[pos])/DECAY_CYCLE;
-            bucket[pos]->time_record[k] = currTime;
-            if(prevTime == 0)continue;
-            //cout << '*'<< tmp << ',' << currTime<<',' << prevTime<< endl;
-            //if (tmp >= 10000) continue;
-            bool f = 1;
+            bool f = 0;
             rep2(j, 0, tmp){
                 decaytime[pos] = decaytime[pos] + DECAY_CYCLE;
-                if(bucket[pos]->speed_monitor == 0)continue;
+                //if(bucket[pos]->last_sm == 0)continue;
                 decay(pos, currTime, flow, f);
             }
             if(flow == 113254552UL){
@@ -138,17 +105,16 @@ public:
                 if(currTime > number*(1*unittime)){
                     number += 1;
                 }
-                gtlog << currTime << ','<< bucket[pos]->speed_monitor << endl;
+                gtlog << currTime << ','<< bucket[pos]->last_sm+bucket[pos]->speed_monitor << endl;
             } 
         }
-        
     }
 
     void claimBurst(uint64_t & flowid, uint64_t & starttime, uint64_t & endtime){
         //if(flowid == 4458840894235853209UL){
 
         //}
-        Record.push_back(Burst(starttime,endtime,flowid));
+        //Record.push_back(Burst(starttime,endtime,flowid));
         //mylog << "flow id = " << flowid << ':' << endl;
         //mylog << starttime << ',' << endtime << endl;
     }
@@ -167,27 +133,28 @@ public:
     }
 
     void decay(uint32_t pos, uint64_t currTime, uint64_t flow, bool &deflag){
-        uint32_t & sp_mo = bucket[pos]->speed_monitor;
-        uint32_t k1 = getk(sp_mo);
-        /*
-        if (sp_mo < DECAY)sp_mo = 0;
-        else sp_mo -= DECAY;
-        */
-        double dspmo = (double) sp_mo;
-        dspmo  = (dspmo * (float)(k-1)) / (float)k;
-        double temp = dspmo - (double)(int)dspmo;
-
-        if(prob(1-temp)) sp_mo = (int)dspmo;
-        else sp_mo = (int)dspmo + 1;
         
-        uint32_t k2 = getk(sp_mo);
-        uint64_t  lt = bucket[pos]->time_record[k2];
-       /* if(k2 < k1 && deflag) {
-            bool tmp = detectBurst(lt, currTime, k2, pos, flow);
-            if(tmp) deflag = 0;
-        }*/
-        bucket[pos]->time_record[k2] = currTime;
-        //decaytime[pos] = currTime;
+        bucket[pos]->flow_record = flow;
+
+        double xhat = (double)bucket[pos]->speed_monitor;
+        double y0p = (double)bucket[pos]->last_sm;
+        double y1 = ((double)(k-1)/(double)k) * y0p + xhat;
+        double dx = 2.0*(y1-y0p)/(double) (k+1);
+        bucket[pos]->speed_monitor = 0;
+        
+        if(y0p < 0.5*(double)(k*(k-1)) * dx){
+            double y1p = y0p + xhat;
+            double temp = y1p - (double)(int)y1p;
+            if(prob(1-temp)) bucket[pos]->last_sm = (int)y1p;
+            else bucket[pos]->last_sm = (int)y1p + 1;
+        }
+        else{
+            double y1p = y0p + 2.0*(double)k/(double)(k+1) * (double)(y1-y0p);
+            double temp = y1p - (double)(int)y1p;
+            if(prob(1-temp)) bucket[pos]->last_sm = (int)y1p;
+            else bucket[pos]->last_sm = (int)y1p + 1;
+        }
+        
     }
 
     ~bm(){

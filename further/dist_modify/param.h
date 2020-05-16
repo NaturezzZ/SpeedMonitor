@@ -21,4 +21,4 @@ struct FIVE_TUPLE{
 typedef vector<FIVE_TUPLE> TRACE;
 typedef unordered_map<string, int> FREQ_RECORD;
 
-ofstream gtlog("/home/zhengnq/SpeedMonitor/further/burst/gtlog", std::ios::out|std::ios::trunc);
+ofstream gtlog("/home/zhengnq/SpeedMonitor/further/dist_modify/algo_dist", std::ios::out|std::ios::trunc);

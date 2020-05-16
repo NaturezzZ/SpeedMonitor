@@ -80,10 +80,9 @@ int main(int argc, char* argv[]){
             offset = lk1;
         }
         lk1 = k1;
-        //if(k2 == 11117438114484264402UL){
-            BurstMonitor->insert(k2, k1);
-            GT->insert(k2, k1);
-        //}
+        BurstMonitor->insert(k2, k1);
+        GT->insert(k2, k1);
+
         if(fullrec.find(k2) != fullrec.end()){
             (*fullrec.find(k2)).second += 1;
         }
@@ -95,17 +94,14 @@ int main(int argc, char* argv[]){
     map<uint64_t, uint32_t>::iterator fullrecit = fullrec.begin();
     uint64_t maxflow;
     uint32_t Max = 0;
-    uint64_t ff = 0;
     while(fullrecit != fullrec.end()){
         if((*fullrecit).second > Max){
-            ff = maxflow;
             Max = (*fullrecit).second;
             maxflow = (*fullrecit).first;
         }
         fullrecit++;
     }
     cout << maxflow << ',' << Max << endl;
-    cout << ff << ',' << (*fullrec.find(ff)).se << endl;
     //mylog << "*******" << endl;
     rep2(i,0,1000){
         mylog << window_size*i << ',' << GT->tmp[i] << endl;

@@ -6,12 +6,12 @@ using namespace std;
 int main(int argc, char* argv[]){
     int upper = atoi(argv[2]);
     char resultpath[100] = {0};
-    strcat(resultpath, "/home/zhengnq/SpeedMonitor/further");
+    strcat(resultpath, "/home/zhengnq/SpeedMonitor/further/burst/");
     strcat(resultpath, argv[1]);
     ofstream myout(resultpath, std::ios::out|std::ios::trunc);
 
     char originpath[100] = {0};
-    strcat(originpath, "/home/zhengnq/SpeedMonitor/further");
+    strcat(originpath, "/home/zhengnq/SpeedMonitor/further/burst/");
     strcat(originpath, argv[1]);
 
     
@@ -26,7 +26,12 @@ int main(int argc, char* argv[]){
             myin.getline(str,sizeof(str),'\n'); //读一行
             cout << str << endl; //输出到屏幕
             myout<< str <<endl; //输出到文件
-        }    
+        }
+        char tmp[100] = {0};
+        strcat(tmp, "rm ");
+        strcat(tmp, buf);
+        system(tmp);  
     }
     myout.close();
+
 }

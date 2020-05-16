@@ -62,12 +62,12 @@ class CorrectBurstDetector
 	}
 	void insert(uint64_t flow_id, uint64_t flow_time)
 	{
-		uint64_t timestamp = flow_time / window_size;
-		if(last_timestamp < timestamp)
+		uint64_t ts = flow_time / window_size;
+		if(last_timestamp < ts)
 		{
-			for(int i = last_timestamp; i < timestamp; i++)
+			for(int i = last_timestamp; i < ts; i++)
 				update(i);
-			last_timestamp = timestamp;
+			last_timestamp = ts;
 		}
 		if(F.find(flow_id) == F.end())
 		{
@@ -75,8 +75,8 @@ class CorrectBurstDetector
 			F[flow_id] = w++;
 		}
 		counter[flag][F[flow_id]]++;
-		if(flow_id == 208005795227025817UL){
-			tmp[timestamp] += 1;
+		if(flow_id == 113254552UL){
+			tmp[ts] += 1;
 		}
 	}
 };

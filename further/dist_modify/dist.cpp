@@ -21,8 +21,10 @@ pair<float,float> test(){
             offset = lk1;
         }
         lk1 = k1;
-        BurstMonitor->insert(k2, k1);
-        GT->insert(k2, k1);
+        if(k2==11117438114484264402UL){
+            BurstMonitor->insert(k2, k1);
+            GT->insert(k2, k1);
+        }
     }
     cout << GT->Record.size() << endl;
     int cnt = 0;
@@ -58,7 +60,7 @@ pair<float,float> test(){
 }
 int main(int argc, char* argv[]){
     char logpath[100] = {0};
-    strcat(logpath, "/home/zhengnq/SpeedMonitor/further/distribution/");
+    strcat(logpath, "/home/zhengnq/SpeedMonitor/further/dist_modify/");
     strcat(logpath, "gt_dist");
     //strcat(logpath, argv[2]);
     ofstream mylog(logpath, std::ios::out|std::ios::trunc);
@@ -80,10 +82,8 @@ int main(int argc, char* argv[]){
             offset = lk1;
         }
         lk1 = k1;
-        //if(k2 == 11117438114484264402UL){
-            BurstMonitor->insert(k2, k1);
-            GT->insert(k2, k1);
-        //}
+        BurstMonitor->insert(k2, k1);
+        GT->insert(k2, k1);
         if(fullrec.find(k2) != fullrec.end()){
             (*fullrec.find(k2)).second += 1;
         }
